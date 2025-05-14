@@ -27,3 +27,7 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace (
+	github.com/zhengziyi0117/skywalking-goapi v0.0.0-20250512124208-9cabf5713787 => skywalking.apache.org/repo/goapi v0.0.0-20230314034821-0c5a44bb767a
+)
