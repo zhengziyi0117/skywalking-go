@@ -22,6 +22,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/apache/skywalking-go/plugins/core/reporter/command_runner"
+	trace_command "github.com/apache/skywalking-go/plugins/core/reporter/command_runner/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/connectivity"
@@ -113,6 +115,8 @@ type gRPCReporter struct {
 	// bootFlag is set if Boot be executed
 	bootFlag         bool
 	connectionStatus reporter.ConnectionStatus
+
+	commandRunnerMap map[command_runner.CommandRunnerType]command_runner.CommandRunner
 }
 
 func (r *gRPCReporter) Boot(entity *reporter.Entity, cdsWatchers []reporter.AgentConfigChangeWatcher) {
@@ -513,4 +517,10 @@ func (r *gRPCReporter) check() {
 			time.Sleep(r.checkInterval)
 		}
 	}()
+}
+
+func (r *gRPCReporter) initCommandRunner() {
+	r.commandRunnerMap = make(map[command_runner.CommandRunnerType]command_runner.CommandRunner)
+	runner := trace_command.InitProfileTaskCommandRunner(r.conn, r.entity, r.logger)
+	r.commandRunnerMap[command_runner.TraceCommandRunner] = runner
 }
