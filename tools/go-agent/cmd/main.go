@@ -26,7 +26,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strings"
 )
 
 var toolFlags = &EnhancementToolFlags{}
@@ -87,7 +86,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	println(strings.Join(args, " "))
 	// execute the delegate command with updated args
 	executeDelegateCommand(args[firstNonOptionIndex:])
 }

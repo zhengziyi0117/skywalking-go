@@ -19,6 +19,7 @@ package grpc
 
 import (
 	"context"
+	"github.com/apache/skywalking-go/plugins/core/reporter/command"
 	"io"
 	"time"
 
@@ -34,7 +35,6 @@ import (
 	logv3 "skywalking.apache.org/repo/goapi/collect/logging/v3"
 	managementv3 "skywalking.apache.org/repo/goapi/collect/management/v3"
 
-	"github.com/apache/skywalking-go/plugins/core/command"
 	"github.com/apache/skywalking-go/plugins/core/operator"
 	"github.com/apache/skywalking-go/plugins/core/reporter"
 )
@@ -89,24 +89,26 @@ func NewGRPCReporter(logger operator.LogOperator, serverAddr string, opts ...Rep
 		r.cdsClient = configuration.NewConfigurationDiscoveryServiceClient(r.conn)
 		r.cdsService = reporter.NewConfigDiscoveryService()
 	}
+	r.profileTaskService = command.NewProfileTaskService()
 	return r, nil
 }
 
 type gRPCReporter struct {
-	entity           *reporter.Entity
-	logger           operator.LogOperator
-	tracingSendCh    chan *agentv3.SegmentObject
-	metricsSendCh    chan []*agentv3.MeterData
-	logSendCh        chan *logv3.LogData
-	conn             *grpc.ClientConn
-	traceClient      agentv3.TraceSegmentReportServiceClient
-	metricsClient    agentv3.MeterReportServiceClient
-	logClient        logv3.LogReportServiceClient
-	managementClient managementv3.ManagementServiceClient
-	checkInterval    time.Duration
-	cdsInterval      time.Duration
-	cdsService       *reporter.ConfigDiscoveryService
-	cdsClient        configuration.ConfigurationDiscoveryServiceClient
+	entity             *reporter.Entity
+	logger             operator.LogOperator
+	tracingSendCh      chan *agentv3.SegmentObject
+	metricsSendCh      chan []*agentv3.MeterData
+	logSendCh          chan *logv3.LogData
+	conn               *grpc.ClientConn
+	traceClient        agentv3.TraceSegmentReportServiceClient
+	metricsClient      agentv3.MeterReportServiceClient
+	logClient          logv3.LogReportServiceClient
+	managementClient   managementv3.ManagementServiceClient
+	checkInterval      time.Duration
+	cdsInterval        time.Duration
+	cdsService         *reporter.ConfigDiscoveryService
+	profileTaskService *command.ProfileTaskService
+	cdsClient          configuration.ConfigurationDiscoveryServiceClient
 
 	md    metadata.MD
 	creds credentials.TransportCredentials
@@ -114,8 +116,6 @@ type gRPCReporter struct {
 	// bootFlag is set if Boot be executed
 	bootFlag         bool
 	connectionStatus reporter.ConnectionStatus
-
-	commandRunnerMap map[command.RunnerType]command.Runner
 }
 
 func (r *gRPCReporter) Boot(entity *reporter.Entity, cdsWatchers []reporter.AgentConfigChangeWatcher) {
@@ -518,12 +518,12 @@ func (r *gRPCReporter) check() {
 	}()
 }
 
-func (r *gRPCReporter) initCommandRunner() {
-	r.commandRunnerMap = make(map[command.RunnerType]command.Runner)
-	runner := command.NewProfileTaskCommandRunner(r.conn, r.entity, r.logger)
-	r.commandRunnerMap[command.TraceCommandRunner] = runner
-
-	for _, commandRunner := range r.commandRunnerMap {
-		commandRunner.Run()
-	}
-}
+//func (r *gRPCReporter) initCommandRunner() {
+//	r.commandRunnerMap = make(map[command.RunnerType]command.Runner)
+//	runner := command.NewProfileTaskCommandRunner(r.conn, r.entity, r.logger)
+//	r.commandRunnerMap[command.TraceCommandRunner] = runner
+//
+//	for _, commandRunner := range r.commandRunnerMap {
+//		commandRunner.Run()
+//	}
+//}

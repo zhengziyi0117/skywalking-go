@@ -30,7 +30,6 @@ import (
 	_ "time"
 
 	// imports the logs for reporter
-	_ "github.com/apache/skywalking-go/agent/core/command"
 	_ "github.com/apache/skywalking-go/agent/core/operator"
 	_ "github.com/apache/skywalking-go/log"
 
