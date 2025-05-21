@@ -19,7 +19,6 @@ package core
 
 import (
 	"github.com/apache/skywalking-go/plugins/core/tracing"
-
 	agentv3 "skywalking.apache.org/repo/goapi/collect/language/agent/v3"
 )
 
@@ -50,4 +49,6 @@ type TracingSpan interface {
 	IsExit() bool
 	IsValid() bool
 	ParentSpan() TracingSpan
+	//SetGoroutineLabels(unsafe.Pointer)
+	//GetGoroutineLabels() unsafe.Pointer
 }

@@ -19,13 +19,11 @@ package core
 
 import (
 	"fmt"
-	"reflect"
-	"runtime/debug"
-
-	"github.com/pkg/errors"
-
 	"github.com/apache/skywalking-go/plugins/core/reporter"
 	"github.com/apache/skywalking-go/plugins/core/tracing"
+	"github.com/pkg/errors"
+	"reflect"
+	"runtime/debug"
 )
 
 var snapshotType = reflect.TypeOf(&SnapshotSpan{})
@@ -62,6 +60,10 @@ func (t *Tracer) CreateEntrySpan(operationName string, extractor interface{}, op
 	if !ref.Valid {
 		ref = nil
 	}
+	// TODO add label
+	//withLabels := pprof.WithLabels(context.Background(), pprof.Labels("1", "2"))
+	//pprof.SetGoroutineLabels(withLabels)
+	//labels := (*pprof.LabelSet)(GetGoroutineLabels())
 
 	span, _, err := t.createSpan0(ctx, tracingSpan, opts, withRef(ref), withSpanType(SpanTypeEntry), withOperationName(operationName))
 	return span, err

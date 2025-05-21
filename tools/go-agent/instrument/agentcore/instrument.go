@@ -206,7 +206,7 @@ func (i *Instrument) writeLinkerFile(dir string) (string, error) {
 	return tools.WriteFile(dir, "runtime_linker.go", tools.ExecuteTemplate(`package core
 
 import (
-	_ "unsafe"
+	"unsafe"
 )
 
 //go:linkname {{.TLSGetLinkMethod}} {{.TLSGetLinkMethod}}
@@ -214,6 +214,12 @@ var {{.TLSGetLinkMethod}} func() interface{}
 
 //go:linkname {{.TLSSetLinkMethod}} {{.TLSSetLinkMethod}}
 var {{.TLSSetLinkMethod}} func(interface{})
+
+//go:linkname {{.PprofGetGoroutineLabelsLinkMethod}} {{.PprofGetGoroutineLabelsLinkMethod}}
+var {{.PprofGetGoroutineLabelsLinkMethod}} func() unsafe.Pointer
+
+//go:linkname {{.PprofSetGoroutineLabelsLinkMethod}} {{.PprofSetGoroutineLabelsLinkMethod}}
+var {{.PprofSetGoroutineLabelsLinkMethod}} func(unsafe.Pointer) 
 
 //go:linkname {{.SetGlobalOperatorLinkMethod}} {{.SetGlobalOperatorLinkMethod}}
 var {{.SetGlobalOperatorLinkMethod}} func(interface{}) 
@@ -235,6 +241,10 @@ func init() {
 		GetGLS = {{.TLSGetLinkMethod}}
 		SetGLS = {{.TLSSetLinkMethod}}
 	}
+	if {{.PprofGetGoroutineLabelsLinkMethod}} != nil && {{.PprofSetGoroutineLabelsLinkMethod}} != nil {
+		GetGoroutineLabels = {{.PprofGetGoroutineLabelsLinkMethod}}
+		SetGoroutineLabels = {{.PprofSetGoroutineLabelsLinkMethod}}
+	}
 	if {{.GetGoroutineIDLinkMethod}} != nil {
 		GetGoID = {{.GetGoroutineIDLinkMethod}}
 	}
@@ -251,20 +261,24 @@ func init() {
 	}
 }
 `, struct {
-		TLSGetLinkMethod            string
-		TLSSetLinkMethod            string
-		SetGlobalOperatorLinkMethod string
-		GetGlobalOperatorLinkMethod string
-		GetGoroutineIDLinkMethod    string
-		GetInitNotifyLinkMethod     string
-		MetricsObtainMethodName     string
+		TLSGetLinkMethod                  string
+		TLSSetLinkMethod                  string
+		PprofGetGoroutineLabelsLinkMethod string
+		PprofSetGoroutineLabelsLinkMethod string
+		SetGlobalOperatorLinkMethod       string
+		GetGlobalOperatorLinkMethod       string
+		GetGoroutineIDLinkMethod          string
+		GetInitNotifyLinkMethod           string
+		MetricsObtainMethodName           string
 	}{
-		TLSGetLinkMethod:            consts.TLSGetMethodName,
-		TLSSetLinkMethod:            consts.TLSSetMethodName,
-		SetGlobalOperatorLinkMethod: consts.GlobalTracerSetMethodName,
-		GetGlobalOperatorLinkMethod: consts.GlobalTracerGetMethodName,
-		GetGoroutineIDLinkMethod:    consts.CurrentGoroutineIDGetMethodName,
-		GetInitNotifyLinkMethod:     consts.GlobalTracerInitGetNotifyMethodName,
-		MetricsObtainMethodName:     consts.MetricsObtainMethodName,
+		TLSGetLinkMethod:                  consts.TLSGetMethodName,
+		TLSSetLinkMethod:                  consts.TLSSetMethodName,
+		PprofGetGoroutineLabelsLinkMethod: consts.PprofGetGoroutineLabelsMethodName,
+		PprofSetGoroutineLabelsLinkMethod: consts.PprofSetGoroutineLabelsMethodName,
+		SetGlobalOperatorLinkMethod:       consts.GlobalTracerSetMethodName,
+		GetGlobalOperatorLinkMethod:       consts.GlobalTracerGetMethodName,
+		GetGoroutineIDLinkMethod:          consts.CurrentGoroutineIDGetMethodName,
+		GetInitNotifyLinkMethod:           consts.GlobalTracerInitGetNotifyMethodName,
+		MetricsObtainMethodName:           consts.MetricsObtainMethodName,
 	}))
 }

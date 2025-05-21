@@ -141,6 +141,12 @@ var {{.TLSGetMethod}} = _skywalking_tls_get_impl
 //go:linkname {{.TLSSetMethod}} {{.TLSSetMethod}}
 var {{.TLSSetMethod}} = _skywalking_tls_set_impl
 
+//go:linkname {{.PprofGetGoroutineLabelsMethod}} {{.PprofGetGoroutineLabelsMethod}}
+var {{.PprofGetGoroutineLabelsMethod}} = runtime_getProfLabel
+
+//go:linkname {{.PprofSetGoroutineLabelsMethod}} {{.PprofSetGoroutineLabelsMethod}}
+var {{.PprofSetGoroutineLabelsMethod}} = runtime_setProfLabel
+
 //go:linkname {{.GlobalOperatorSetMethodName}} {{.GlobalOperatorSetMethodName}}
 var {{.GlobalOperatorSetMethodName}} = _skywalking_global_operator_set_impl
 
@@ -269,6 +275,8 @@ func goroutineChange(tls interface{}) interface{} {
 			TLSFiledName                        string
 			TLSGetMethod                        string
 			TLSSetMethod                        string
+			PprofGetGoroutineLabelsMethod       string
+			PprofSetGoroutineLabelsMethod       string
 			GlobalTracerFieldName               string
 			GlobalTracerSnapshotInterface       string
 			GlobalOperatorSetMethodName         string
@@ -291,6 +299,8 @@ func goroutineChange(tls interface{}) interface{} {
 			TLSFiledName:                        consts.TLSFieldName,
 			TLSGetMethod:                        consts.TLSGetMethodName,
 			TLSSetMethod:                        consts.TLSSetMethodName,
+			PprofGetGoroutineLabelsMethod:       consts.PprofGetGoroutineLabelsMethodName,
+			PprofSetGoroutineLabelsMethod:       consts.PprofSetGoroutineLabelsMethodName,
 			GlobalTracerFieldName:               consts.GlobalTracerFieldName,
 			GlobalTracerSnapshotInterface:       consts.GlobalTracerSnapshotInterface,
 			GlobalOperatorSetMethodName:         consts.GlobalTracerSetMethodName,

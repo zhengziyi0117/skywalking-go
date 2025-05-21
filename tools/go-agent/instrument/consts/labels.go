@@ -15,23 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package tracing
+package consts
 
-import (
-	//go:nolint
-	_ "context"
-	_ "fmt"
-	_ "reflect"
-	_ "runtime/pprof"
-
-	//go:nolint
-	_ "github.com/pkg/errors"
-
-	//go:nolint
-	_ "github.com/apache/skywalking-go/agent/core/operator"
-	_ "github.com/apache/skywalking-go/agent/reporter"
-
-	//go:nolint
-	_ "skywalking.apache.org/repo/goapi/collect/common/v3"
-	_ "skywalking.apache.org/repo/goapi/collect/language/agent/v3"
+const (
+	PprofGetGoroutineLabelsMethodName = "skywalking_get_goroutine_labels"
+	PprofSetGoroutineLabelsMethodName = "skywalking_set_goroutine_labels"
 )

@@ -17,15 +17,20 @@
 
 package core
 
-import "reflect"
+import (
+	"reflect"
+	"unsafe"
+)
 
 var (
-	GetGLS            = func() interface{} { return nil }
-	SetGLS            = func(interface{}) {}
-	SetGlobalOperator = func(interface{}) {}
-	GetGlobalOperator = func() interface{} { return nil }
-	GetInitNotify     = func() []func() { return nil }
-	MetricsObtain     = func() ([]interface{}, []func()) { return nil, nil }
+	GetGLS             = func() interface{} { return nil }
+	SetGLS             = func(interface{}) {}
+	SetGlobalOperator  = func(interface{}) {}
+	GetGlobalOperator  = func() interface{} { return nil }
+	GetInitNotify      = func() []func() { return nil }
+	MetricsObtain      = func() ([]interface{}, []func()) { return nil, nil }
+	GetGoroutineLabels = func() unsafe.Pointer { return nil }
+	SetGoroutineLabels = func(unsafe.Pointer) {}
 )
 
 type ContextSnapshoter interface {
