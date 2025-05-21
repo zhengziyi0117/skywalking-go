@@ -22,8 +22,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/apache/skywalking-go/plugins/core/reporter/command_runner"
-	trace_command "github.com/apache/skywalking-go/plugins/core/reporter/command_runner/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/connectivity"
@@ -36,6 +34,7 @@ import (
 	logv3 "skywalking.apache.org/repo/goapi/collect/logging/v3"
 	managementv3 "skywalking.apache.org/repo/goapi/collect/management/v3"
 
+	"github.com/apache/skywalking-go/plugins/core/command"
 	"github.com/apache/skywalking-go/plugins/core/operator"
 	"github.com/apache/skywalking-go/plugins/core/reporter"
 )
@@ -116,7 +115,7 @@ type gRPCReporter struct {
 	bootFlag         bool
 	connectionStatus reporter.ConnectionStatus
 
-	commandRunnerMap map[command_runner.CommandRunnerType]command_runner.CommandRunner
+	commandRunnerMap map[command.RunnerType]command.Runner
 }
 
 func (r *gRPCReporter) Boot(entity *reporter.Entity, cdsWatchers []reporter.AgentConfigChangeWatcher) {
@@ -520,7 +519,11 @@ func (r *gRPCReporter) check() {
 }
 
 func (r *gRPCReporter) initCommandRunner() {
-	r.commandRunnerMap = make(map[command_runner.CommandRunnerType]command_runner.CommandRunner)
-	runner := trace_command.InitProfileTaskCommandRunner(r.conn, r.entity, r.logger)
-	r.commandRunnerMap[command_runner.TraceCommandRunner] = runner
+	r.commandRunnerMap = make(map[command.RunnerType]command.Runner)
+	runner := command.NewProfileTaskCommandRunner(r.conn, r.entity, r.logger)
+	r.commandRunnerMap[command.TraceCommandRunner] = runner
+
+	for _, commandRunner := range r.commandRunnerMap {
+		commandRunner.Run()
+	}
 }

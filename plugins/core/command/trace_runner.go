@@ -1,19 +1,18 @@
-package trace
+package command
 
 import (
 	"context"
-	"os"
-	"runtime/pprof"
-	"sync/atomic"
-	"time"
-
 	"github.com/apache/skywalking-go/plugins/core/operator"
 	"github.com/apache/skywalking-go/plugins/core/reporter"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"os"
+	"runtime/pprof"
 	profilev3 "skywalking.apache.org/repo/goapi/collect/language/profile/v3"
+	"sync/atomic"
+	"time"
 )
 
 const getProfileTaskInterval = 20 * time.Second
@@ -38,14 +37,13 @@ type ProfileTaskCommandRunner struct {
 	//cdsService       *reporter.ConfigDiscoveryService
 }
 
-func InitProfileTaskCommandRunner(conn *grpc.ClientConn, entity *reporter.Entity, logger operator.LogOperator) *ProfileTaskCommandRunner {
+func NewProfileTaskCommandRunner(conn *grpc.ClientConn, entity *reporter.Entity, logger operator.LogOperator) *ProfileTaskCommandRunner {
 	profileClient := profilev3.NewProfileTaskClient(conn)
 	runner := &ProfileTaskCommandRunner{
 		entity:         entity,
 		profileClient:  profileClient,
 		lastUpdateTime: 0,
 	}
-	go runner.Run()
 	return runner
 }
 

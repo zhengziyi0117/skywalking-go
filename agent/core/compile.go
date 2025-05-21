@@ -39,6 +39,7 @@ import (
 	_ "unsafe"
 
 	//go:nolint
+	_ "github.com/apache/skywalking-go/agent/core/command"
 	_ "github.com/apache/skywalking-go/agent/core/metrics"
 	_ "github.com/apache/skywalking-go/agent/core/operator"
 	_ "github.com/apache/skywalking-go/agent/core/tracing"

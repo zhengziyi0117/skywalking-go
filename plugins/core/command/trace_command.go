@@ -1,16 +1,14 @@
-package trace
+package command
 
 import (
-	"strconv"
-
-	"github.com/apache/skywalking-go/plugins/core/reporter/command_runner"
 	commonv3 "skywalking.apache.org/repo/goapi/collect/common/v3"
+	"strconv"
 )
 
 const NAME = "ProfileTaskQuery"
 
 type ProfileTaskCommand struct {
-	command_runner.BaseCommand
+	BaseCommand
 
 	taskId               string
 	endpointName         string
@@ -59,7 +57,7 @@ func Deserialize(command *commonv3.Command) *ProfileTaskCommand {
 	}
 
 	return &ProfileTaskCommand{
-		BaseCommand: command_runner.BaseCommand{
+		BaseCommand: BaseCommand{
 			SerialNumber: serialNumber,
 			Command:      NAME,
 		},

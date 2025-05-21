@@ -19,14 +19,14 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os"
-	"os/exec"
-
 	"github.com/apache/skywalking-go/tools/go-agent/config"
 	"github.com/apache/skywalking-go/tools/go-agent/instrument"
 	"github.com/apache/skywalking-go/tools/go-agent/instrument/api"
 	"github.com/apache/skywalking-go/tools/go-agent/tools"
+	"log"
+	"os"
+	"os/exec"
+	"strings"
 )
 
 var toolFlags = &EnhancementToolFlags{}
@@ -87,7 +87,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	println(strings.Join(args, " "))
 	// execute the delegate command with updated args
 	executeDelegateCommand(args[firstNonOptionIndex:])
 }
