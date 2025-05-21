@@ -19,9 +19,10 @@ package grpc
 
 import (
 	"context"
-	"github.com/apache/skywalking-go/plugins/core/reporter/command"
 	"io"
 	"time"
+
+	"github.com/apache/skywalking-go/plugins/core/reporter/command"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
@@ -32,6 +33,7 @@ import (
 
 	configuration "skywalking.apache.org/repo/goapi/collect/agent/configuration/v3"
 	agentv3 "skywalking.apache.org/repo/goapi/collect/language/agent/v3"
+	profilev3 "skywalking.apache.org/repo/goapi/collect/language/profile/v3"
 	logv3 "skywalking.apache.org/repo/goapi/collect/logging/v3"
 	managementv3 "skywalking.apache.org/repo/goapi/collect/management/v3"
 
@@ -89,26 +91,34 @@ func NewGRPCReporter(logger operator.LogOperator, serverAddr string, opts ...Rep
 		r.cdsClient = configuration.NewConfigurationDiscoveryServiceClient(r.conn)
 		r.cdsService = reporter.NewConfigDiscoveryService()
 	}
-	r.profileTaskService = command.NewProfileTaskService()
+	if r.profileInterval > 0 {
+		r.profileClient = profilev3.NewProfileTaskClient(r.conn)
+		r.profileTaskService = command.NewProfileTaskService(r.logger, r.profileFilePath)
+	}
 	return r, nil
 }
 
 type gRPCReporter struct {
-	entity             *reporter.Entity
-	logger             operator.LogOperator
-	tracingSendCh      chan *agentv3.SegmentObject
-	metricsSendCh      chan []*agentv3.MeterData
-	logSendCh          chan *logv3.LogData
-	conn               *grpc.ClientConn
-	traceClient        agentv3.TraceSegmentReportServiceClient
-	metricsClient      agentv3.MeterReportServiceClient
-	logClient          logv3.LogReportServiceClient
-	managementClient   managementv3.ManagementServiceClient
-	checkInterval      time.Duration
-	cdsInterval        time.Duration
-	cdsService         *reporter.ConfigDiscoveryService
+	entity           *reporter.Entity
+	logger           operator.LogOperator
+	tracingSendCh    chan *agentv3.SegmentObject
+	metricsSendCh    chan []*agentv3.MeterData
+	logSendCh        chan *logv3.LogData
+	conn             *grpc.ClientConn
+	traceClient      agentv3.TraceSegmentReportServiceClient
+	metricsClient    agentv3.MeterReportServiceClient
+	logClient        logv3.LogReportServiceClient
+	managementClient managementv3.ManagementServiceClient
+	checkInterval    time.Duration
+	// cds command
+	cdsInterval time.Duration
+	cdsService  *reporter.ConfigDiscoveryService
+	cdsClient   configuration.ConfigurationDiscoveryServiceClient
+	// profile command
+	profileClient      profilev3.ProfileTaskClient
 	profileTaskService *command.ProfileTaskService
-	cdsClient          configuration.ConfigurationDiscoveryServiceClient
+	profileInterval    time.Duration
+	profileFilePath    string
 
 	md    metadata.MD
 	creds credentials.TransportCredentials
@@ -123,6 +133,7 @@ func (r *gRPCReporter) Boot(entity *reporter.Entity, cdsWatchers []reporter.Agen
 	r.initSendPipeline()
 	r.check()
 	r.initCDS(cdsWatchers)
+	r.initProfile()
 	r.bootFlag = true
 }
 

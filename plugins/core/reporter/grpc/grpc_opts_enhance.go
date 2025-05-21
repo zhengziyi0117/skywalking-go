@@ -74,7 +74,20 @@ func WithCDS(interval time.Duration) ReporterOption {
 	}
 }
 
-//nolint
+// WithProfile setup Configuration Discovery Service to dynamic config
+func WithProfileFetchInterval(interval time.Duration) ReporterOption {
+	return func(r *gRPCReporter) {
+		r.profileInterval = interval
+	}
+}
+
+func WithProfileFilePath(filePath string) ReporterOption {
+	return func(r *gRPCReporter) {
+		r.profileFilePath = filePath
+	}
+}
+
+// nolint
 func generateTLSCredential(caPath, clientKeyPath, clientCertChainPath string, skipVerify bool) (tc credentials.TransportCredentials, tlsErr error) {
 	if err := checkTLSFile(caPath); err != nil {
 		return nil, err

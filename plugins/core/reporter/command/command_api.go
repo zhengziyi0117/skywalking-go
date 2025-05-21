@@ -4,10 +4,10 @@ import common "skywalking.apache.org/repo/goapi/collect/common/v3"
 
 type ServiceType int
 
-const (
-	ProfileTaskServiceType ServiceType = iota
-	// OtherCommandRunner
-)
+//const (
+//	ProfileTaskServiceType ServiceType = iota
+//	ConfigDiscoveryServiceType
+//)
 
 type BaseCommand struct {
 	Command      string
@@ -15,5 +15,5 @@ type BaseCommand struct {
 }
 
 type ExecuteService interface {
-	HandleCommand(command *common.Command)
+	HandleCommand(rawCommand *common.Command)
 }

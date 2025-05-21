@@ -25,6 +25,8 @@ import (
 	_ "fmt"
 	_ "io"
 	_ "os"
+	_ "path/filepath"
+	_ "runtime/pprof"
 	_ "strconv"
 	_ "strings"
 	_ "time"

@@ -80,12 +80,18 @@ type Meter struct {
 }
 
 type GRPCReporter struct {
-	BackendService   StringValue     `yaml:"backend_service"`
-	MaxSendQueue     StringValue     `yaml:"max_send_queue"`
-	CheckInterval    StringValue     `yaml:"check_interval"`
-	Authentication   StringValue     `yaml:"authentication"`
-	CDSFetchInterval StringValue     `yaml:"cds_fetch_interval"`
-	TLS              GRPCReporterTLS `yaml:"tls"`
+	BackendService   StringValue         `yaml:"backend_service"`
+	MaxSendQueue     StringValue         `yaml:"max_send_queue"`
+	CheckInterval    StringValue         `yaml:"check_interval"`
+	Authentication   StringValue         `yaml:"authentication"`
+	CDSFetchInterval StringValue         `yaml:"cds_fetch_interval"`
+	Profile          GRPCReporterProfile `yaml:"profile"`
+	TLS              GRPCReporterTLS     `yaml:"tls"`
+}
+
+type GRPCReporterProfile struct {
+	TaskFetchInterval StringValue `yaml:"task_fetch_interval"`
+	PprofFilePath     StringValue `yaml:"pprof_file_path"`
 }
 
 type GRPCReporterTLS struct {
