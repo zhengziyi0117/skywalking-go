@@ -33,7 +33,8 @@ func (r *gRPCReporter) initProfile() {
 				continue
 			}
 
-			if len(profileCommand.GetCommands()) > 0 && profileCommand.GetCommands()[0].Command == command.ProfileTaskCommandName {
+			commandName := command.ProfileTaskCommandName
+			if len(profileCommand.GetCommands()) > 0 && profileCommand.GetCommands()[0].Command == commandName {
 				rawCommand := profileCommand.GetCommands()[0]
 				r.profileTaskService.HandleCommand(rawCommand)
 			}
