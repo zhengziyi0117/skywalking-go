@@ -27,7 +27,6 @@ import (
 
 	"github.com/apache/skywalking-go/plugins/core/operator"
 	"github.com/apache/skywalking-go/plugins/core/reporter"
-	"github.com/apache/skywalking-go/plugins/core/reporter/command"
 )
 
 // nolint
@@ -46,7 +45,7 @@ type Tracer struct {
 	Sampler     Sampler
 	Log         *LogWrapper
 	correlation *CorrelationConfig
-	cdsWatchers []command.AgentConfigChangeWatcher
+	cdsWatchers []reporter.AgentConfigChangeWatcher
 	// for plugin tools
 	tools *TracerTools
 	// for all metrics
@@ -113,7 +112,7 @@ func newTracer() *Tracer {
 		Reporter:    reporter.NewDiscardReporter(),
 		Sampler:     NewConstSampler(false),
 		Log:         &LogWrapper{newDefaultLogger()},
-		cdsWatchers: make([]command.AgentConfigChangeWatcher, 0),
+		cdsWatchers: make([]reporter.AgentConfigChangeWatcher, 0),
 		tools:       NewTracerTools(),
 
 		meterMap: &sync.Map{},

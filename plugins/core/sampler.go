@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/apache/skywalking-go/plugins/core/reporter/command"
+	"github.com/apache/skywalking-go/plugins/core/reporter"
 )
 
 type Sampler interface {
@@ -118,8 +118,8 @@ func (s *DynamicSampler) Key() string {
 	return "agent.sample_rate"
 }
 
-func (s *DynamicSampler) Notify(eventType command.AgentConfigEventType, newValue string) {
-	if eventType == command.DELETED {
+func (s *DynamicSampler) Notify(eventType reporter.AgentConfigEventType, newValue string) {
+	if eventType == reporter.DELETED {
 		newValue = fmt.Sprintf("%f", s.defaultRate)
 	}
 	samplingRate, err := strconv.ParseFloat(newValue, 64)
@@ -149,7 +149,7 @@ func NewDynamicSampler(samplingRate float64, tracer *Tracer) *DynamicSampler {
 		currentRate: samplingRate,
 		defaultRate: samplingRate,
 	}
-	s.Notify(command.MODIFY, fmt.Sprintf("%f", samplingRate))
+	s.Notify(reporter.MODIFY, fmt.Sprintf("%f", samplingRate))
 	// append watcher
 	tracer.cdsWatchers = append(tracer.cdsWatchers, s)
 	return s

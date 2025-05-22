@@ -128,7 +128,7 @@ type gRPCReporter struct {
 	connectionStatus reporter.ConnectionStatus
 }
 
-func (r *gRPCReporter) Boot(entity *reporter.Entity, cdsWatchers []command.AgentConfigChangeWatcher) {
+func (r *gRPCReporter) Boot(entity *reporter.Entity, cdsWatchers []reporter.AgentConfigChangeWatcher) {
 	r.entity = entity
 	r.initSendPipeline()
 	r.check()

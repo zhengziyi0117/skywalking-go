@@ -17,16 +17,12 @@
 
 package command
 
-import common "skywalking.apache.org/repo/goapi/collect/common/v3"
+import (
+	"github.com/apache/skywalking-go/plugins/core/reporter"
+	common "skywalking.apache.org/repo/goapi/collect/common/v3"
+)
 
 const ConfigurationDiscoveryCommandName = "ConfigurationDiscoveryCommand"
-
-type AgentConfigEventType int32
-
-const (
-	MODIFY AgentConfigEventType = iota
-	DELETED
-)
 
 func NewConfigDiscoveryService() *ConfigDiscoveryService {
 	return &ConfigDiscoveryService{}
@@ -34,12 +30,12 @@ func NewConfigDiscoveryService() *ConfigDiscoveryService {
 
 type ConfigDiscoveryService struct {
 	UUID     string
-	watchers map[string]AgentConfigChangeWatcher
+	watchers map[string]reporter.AgentConfigChangeWatcher
 }
 
-func (s *ConfigDiscoveryService) BindWatchers(watchers []AgentConfigChangeWatcher) {
+func (s *ConfigDiscoveryService) BindWatchers(watchers []reporter.AgentConfigChangeWatcher) {
 	// bind watchers
-	s.watchers = make(map[string]AgentConfigChangeWatcher)
+	s.watchers = make(map[string]reporter.AgentConfigChangeWatcher)
 	for _, watcher := range watchers {
 		s.watchers[watcher.Key()] = watcher
 	}
@@ -66,18 +62,12 @@ func (s *ConfigDiscoveryService) HandleCommand(command *common.Command) {
 	for key, watcher := range s.watchers {
 		pair := newConfigs[key]
 		if pair == nil || pair.Value == "" {
-			watcher.Notify(DELETED, "")
+			watcher.Notify(reporter.DELETED, "")
 		} else if pair.Value != watcher.Value() {
-			watcher.Notify(MODIFY, pair.Value)
+			watcher.Notify(reporter.MODIFY, pair.Value)
 		}
 	}
 
 	// update uuid
 	s.UUID = uuid
-}
-
-type AgentConfigChangeWatcher interface {
-	Key() string
-	Notify(eventType AgentConfigEventType, newValue string)
-	Value() string
 }

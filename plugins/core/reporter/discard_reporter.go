@@ -18,7 +18,6 @@
 package reporter
 
 import (
-	"github.com/apache/skywalking-go/plugins/core/reporter/command"
 	logv3 "skywalking.apache.org/repo/goapi/collect/logging/v3"
 )
 
@@ -28,7 +27,7 @@ func NewDiscardReporter() Reporter {
 	return &discardReporter{}
 }
 
-func (r *discardReporter) Boot(entity *Entity, cdsWatchers []command.AgentConfigChangeWatcher) {
+func (r *discardReporter) Boot(entity *Entity, cdsWatchers []AgentConfigChangeWatcher) {
 	// do nothing
 }
 func (r *discardReporter) SendTracing(spans []ReportedSpan) {
