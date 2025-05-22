@@ -6,6 +6,7 @@ import (
 
 	"github.com/apache/skywalking-go/plugins/core/reporter"
 	"github.com/apache/skywalking-go/plugins/core/reporter/command"
+	configuration "skywalking.apache.org/repo/goapi/collect/agent/configuration/v3"
 	profilev3 "skywalking.apache.org/repo/goapi/collect/language/profile/v3"
 )
 
@@ -39,6 +40,46 @@ func (r *gRPCReporter) initProfile() {
 			}
 
 			time.Sleep(r.profileInterval)
+		}
+	}()
+}
+
+func (r *gRPCReporter) initCDS(cdsWatchers []command.AgentConfigChangeWatcher) {
+	if r.cdsClient == nil {
+		return
+	}
+
+	// bind watchers
+	r.cdsService.BindWatchers(cdsWatchers)
+
+	// fetch config
+	go func() {
+		for {
+			switch r.updateConnectionStatus() {
+			case reporter.ConnectionStatusShutdown:
+				break
+			case reporter.ConnectionStatusDisconnect:
+				time.Sleep(r.cdsInterval)
+				continue
+			}
+
+			configurations, err := r.cdsClient.FetchConfigurations(context.Background(), &configuration.ConfigurationSyncRequest{
+				Service: r.entity.ServiceName,
+				Uuid:    r.cdsService.UUID,
+			})
+
+			if err != nil {
+				r.logger.Errorf("fetch dynamic configuration error %v", err)
+				time.Sleep(r.cdsInterval)
+				continue
+			}
+
+			if len(configurations.GetCommands()) > 0 && configurations.GetCommands()[0].Command == command.ConfigurationDiscoveryCommandName {
+				rawCommand := configurations.GetCommands()[0]
+				r.cdsService.HandleCommand(rawCommand)
+			}
+
+			time.Sleep(r.cdsInterval)
 		}
 	}()
 }

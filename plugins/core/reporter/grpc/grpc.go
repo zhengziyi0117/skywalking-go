@@ -89,7 +89,7 @@ func NewGRPCReporter(logger operator.LogOperator, serverAddr string, opts ...Rep
 	r.managementClient = managementv3.NewManagementServiceClient(r.conn)
 	if r.cdsInterval > 0 {
 		r.cdsClient = configuration.NewConfigurationDiscoveryServiceClient(r.conn)
-		r.cdsService = reporter.NewConfigDiscoveryService()
+		r.cdsService = command.NewConfigDiscoveryService()
 	}
 	if r.profileInterval > 0 {
 		r.profileClient = profilev3.NewProfileTaskClient(r.conn)
@@ -112,7 +112,7 @@ type gRPCReporter struct {
 	checkInterval    time.Duration
 	// cds command
 	cdsInterval time.Duration
-	cdsService  *reporter.ConfigDiscoveryService
+	cdsService  *command.ConfigDiscoveryService
 	cdsClient   configuration.ConfigurationDiscoveryServiceClient
 	// profile command
 	profileClient      profilev3.ProfileTaskClient
@@ -128,7 +128,7 @@ type gRPCReporter struct {
 	connectionStatus reporter.ConnectionStatus
 }
 
-func (r *gRPCReporter) Boot(entity *reporter.Entity, cdsWatchers []reporter.AgentConfigChangeWatcher) {
+func (r *gRPCReporter) Boot(entity *reporter.Entity, cdsWatchers []command.AgentConfigChangeWatcher) {
 	r.entity = entity
 	r.initSendPipeline()
 	r.check()
@@ -419,46 +419,6 @@ func (r *gRPCReporter) updateConnectionStatus() reporter.ConnectionStatus {
 		r.connectionStatus = reporter.ConnectionStatusConnected
 	}
 	return r.connectionStatus
-}
-
-func (r *gRPCReporter) initCDS(cdsWatchers []reporter.AgentConfigChangeWatcher) {
-	if r.cdsClient == nil {
-		return
-	}
-
-	// bind watchers
-	r.cdsService.BindWatchers(cdsWatchers)
-
-	// fetch config
-	go func() {
-		for {
-			switch r.updateConnectionStatus() {
-			case reporter.ConnectionStatusShutdown:
-				break
-			case reporter.ConnectionStatusDisconnect:
-				time.Sleep(r.cdsInterval)
-				continue
-			}
-
-			configurations, err := r.cdsClient.FetchConfigurations(context.Background(), &configuration.ConfigurationSyncRequest{
-				Service: r.entity.ServiceName,
-				Uuid:    r.cdsService.UUID,
-			})
-
-			if err != nil {
-				r.logger.Errorf("fetch dynamic configuration error %v", err)
-				time.Sleep(r.cdsInterval)
-				continue
-			}
-
-			if len(configurations.GetCommands()) > 0 && configurations.GetCommands()[0].Command == "ConfigurationDiscoveryCommand" {
-				command := configurations.GetCommands()[0]
-				r.cdsService.HandleCommand(command)
-			}
-
-			time.Sleep(r.cdsInterval)
-		}
-	}()
 }
 
 func (r *gRPCReporter) closeTracingStream(stream agentv3.TraceSegmentReportService_CollectClient) {

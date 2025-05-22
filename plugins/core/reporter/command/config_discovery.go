@@ -15,9 +15,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package reporter
+package command
 
 import common "skywalking.apache.org/repo/goapi/collect/common/v3"
+
+const ConfigurationDiscoveryCommandName = "ConfigurationDiscoveryCommand"
 
 type AgentConfigEventType int32
 

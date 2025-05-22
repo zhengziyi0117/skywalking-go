@@ -22,6 +22,7 @@ import (
 
 	"github.com/apache/skywalking-go/plugins/core/operator"
 	"github.com/apache/skywalking-go/plugins/core/reporter"
+	"github.com/apache/skywalking-go/plugins/core/reporter/command"
 
 	logv3 "skywalking.apache.org/repo/goapi/collect/logging/v3"
 )
@@ -75,7 +76,7 @@ func NewStoreReporter() *StoreReporter {
 	return &StoreReporter{}
 }
 
-func (r *StoreReporter) Boot(entity *reporter.Entity, cdsWatchers []reporter.AgentConfigChangeWatcher) {
+func (r *StoreReporter) Boot(entity *reporter.Entity, cdsWatchers []command.AgentConfigChangeWatcher) {
 }
 
 func (r *StoreReporter) SendTracing(spans []reporter.ReportedSpan) {
