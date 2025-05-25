@@ -17,7 +17,7 @@ func (r *gRPCReporter) initProfile() {
 			case reporter.ConnectionStatusShutdown:
 				break
 			case reporter.ConnectionStatusDisconnect:
-				time.Sleep(r.cdsInterval)
+				time.Sleep(r.profileInterval)
 				continue
 			}
 
@@ -29,7 +29,7 @@ func (r *gRPCReporter) initProfile() {
 
 			if err != nil {
 				r.logger.Errorf("fetch dynamic configuration error %v", err)
-				time.Sleep(r.cdsInterval)
+				time.Sleep(r.profileInterval)
 				continue
 			}
 

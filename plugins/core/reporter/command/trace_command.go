@@ -1,8 +1,10 @@
 package command
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"runtime/pprof"
 	"strconv"
 	"time"
@@ -11,19 +13,49 @@ import (
 	commonv3 "skywalking.apache.org/repo/goapi/collect/common/v3"
 )
 
-const ProfileTaskCommandName = "ProfileTaskQuery"
+const (
+	pprofFileName          = "cpu.pprof"
+	ProfileTaskCommandName = "ProfileTaskQuery"
+	// TaskDurationMinMinute Monitor duration must greater than 1 minutes
+	TaskDurationMinMinute = 1 * time.Minute
+	// TaskDurationMaxMinute The duration of the monitoring task cannot be greater than 15 minutes
+	TaskDurationMaxMinute = 15 * time.Minute
+	// TaskDumpPeriodMaxRate Unit is same as runtime.SetCPUProfileRate(100)
+	// There 100 means 100hz
+	TaskDumpPeriodMaxRate = 100
+)
 
 type ProfileTaskCommand struct {
 	BaseCommand
 
-	taskId               string
-	endpointName         string
-	duration             int
+	taskId       string
+	endpointName string
+	// unit is minute
+	duration   time.Duration
+	startTime  int64
+	createTime int64
+	// unit is hz
+	dumpPeriod int
+
+	// cannot use
 	minDurationThreshold int
-	dumpPeriod           int
 	maxSamplingCount     int
-	startTime            int64
-	createTime           int64
+}
+
+func (c *ProfileTaskCommand) CheckCommand() error {
+	if c.endpointName == "" {
+		return fmt.Errorf("endpoint name cannot be empty")
+	}
+	if c.duration > TaskDurationMinMinute {
+		return fmt.Errorf("monitor duration must greater than %v", TaskDurationMinMinute)
+	}
+	if c.duration < TaskDurationMaxMinute {
+		return fmt.Errorf("monitor duration must less than %v", TaskDumpPeriodMaxRate)
+	}
+	if c.dumpPeriod > TaskDumpPeriodMaxRate {
+		return fmt.Errorf("dump period must be less than or equals %v hz", TaskDumpPeriodMaxRate)
+	}
+	return nil
 }
 
 func deserializeProfileTaskCommand(command *commonv3.Command) *ProfileTaskCommand {
@@ -66,9 +98,9 @@ func deserializeProfileTaskCommand(command *commonv3.Command) *ProfileTaskComman
 		},
 		taskId:               taskId,
 		endpointName:         endpointName,
-		duration:             duration,
+		duration:             time.Duration(duration) * time.Minute,
 		minDurationThreshold: minDurationThreshold,
-		dumpPeriod:           dumpPeriod,
+		dumpPeriod:           1000 / dumpPeriod,
 		maxSamplingCount:     maxSamplingCount,
 		startTime:            startTime,
 		createTime:           createTime,
@@ -80,6 +112,8 @@ type ProfileTaskService struct {
 
 	pprofFilePath  string
 	LastUpdateTime int64
+
+	profileTaskList []*ProfileTaskCommand
 }
 
 func NewProfileTaskService(logger operator.LogOperator, profileFilePath string) *ProfileTaskService {
@@ -93,32 +127,37 @@ func (service *ProfileTaskService) HandleCommand(rawCommand *commonv3.Command) {
 	command := deserializeProfileTaskCommand(rawCommand)
 	if command.createTime > service.LastUpdateTime {
 		service.LastUpdateTime = command.createTime
-	} else {
-		return
 	}
-	stopTime := time.Duration(command.duration) * time.Second
+	if err := command.CheckCommand(); err != nil {
+		service.logger.Errorf("check command error, cannot process this profile task. reason %v", err)
+	}
+	startTime := time.Duration(command.startTime-time.Now().UnixMilli()) * time.Millisecond
+	time.AfterFunc(startTime, func() {
+		stopTime := command.duration
+		pprofFile, err := service.startTask(command)
+		if err != nil {
+			service.logger.Errorf("start pprof error %v \n", err)
+			return
+		}
+		time.AfterFunc(stopTime, func() {
+			service.stopTask(pprofFile)
+		})
 
-	pprofFile, err := service.startTask(command)
-	if err != nil {
-		service.logger.Errorf("start pprof error %v \n", err)
-		return
-	}
-	time.AfterFunc(stopTime, func() {
-		service.stopTask(pprofFile)
 	})
 }
 
-func (service *ProfileTaskService) startTask(profileTaskCommand *ProfileTaskCommand) (*os.File, error) {
+func (service *ProfileTaskService) startTask(command *ProfileTaskCommand) (*os.File, error) {
 	var f *os.File
 	var err error
 	if service.pprofFilePath == "" {
-		f, err = os.CreateTemp("", "cpu.pprof")
+		f, err = os.CreateTemp("", pprofFileName)
 	} else {
-		f, err = os.Create(filepath.Join(service.pprofFilePath, "cpu.pprof"))
+		f, err = os.Create(filepath.Join(service.pprofFilePath, pprofFileName))
 	}
 	if err != nil {
 		return nil, err
 	}
+	runtime.SetCPUProfileRate(command.dumpPeriod)
 	if err = pprof.StartCPUProfile(f); err != nil {
 		return nil, err
 	}

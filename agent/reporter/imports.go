@@ -26,6 +26,7 @@ import (
 	_ "io"
 	_ "os"
 	_ "path/filepath"
+	_ "runtime"
 	_ "runtime/pprof"
 	_ "strconv"
 	_ "strings"

@@ -193,6 +193,33 @@ func WriteDSTFile(path string, file *dst.File, debug *DebugInfo) error {
 	if _, err = output.WriteString(content); err != nil {
 		return err
 	}
+	// TODO oioioioioi
+	//if err = copyDSTFile(path, file, debug); err != nil {
+	//	return err
+	//}
+	return nil
+}
+
+func copyDSTFile(path string, file *dst.File, debug *DebugInfo) error {
+	dir := filepath.Dir("/tmp/test-compile-data" + path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		fmt.Println("创建目录失败:", err)
+		return err
+	}
+	output, err := os.Create("/tmp/test-compile-data" + path)
+	if err != nil {
+		return err
+	}
+	defer output.Close()
+
+	content, err := GenerateDSTFileContent(file, debug)
+	if err != nil {
+		return err
+	}
+
+	if _, err = output.WriteString(content); err != nil {
+		return err
+	}
 	return nil
 }
 
